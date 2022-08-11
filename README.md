@@ -2,6 +2,7 @@ First "touch" on flask api.
 
 Build docker image with:
     docker build -t myflask .
+    
 Run docker image :
     docker run -p 5000:5000 myflaskapi
 
