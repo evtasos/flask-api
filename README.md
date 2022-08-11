@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 First "touch" on flask api.
 
 Build docker image with:
@@ -9,3 +10,6 @@ Accessing the localhost url on port 5000 (http://localhost:5000/) downloads a sa
 
 TODO
 add docx templates and jinja tags
+=======
+test2
+>>>>>>> fc5f18377c3f7ccee29b74d5e7a30e0d1a3247cd
