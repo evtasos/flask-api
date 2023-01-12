@@ -87,7 +87,7 @@ def modify_file(filename):
 @app.route('/list', methods=['GET'])
 def list_files():
     files = os.listdir(UPLOAD_FOLDER)
-    return jsonify({"files": files})
+    return jsonify({"files": files}), 200
 
 # Route for deleting a file
 @app.route('/delete/<filename>', methods=['DELETE'])
