@@ -6,7 +6,7 @@ Build docker image with:
 Run docker image :
     docker run -p 5000:5000 myflask
 
-Accessing the localhost url on port 5000 (http://localhost:5000/) downloads a sample file (report.docx) on ur pc. The report.docx is made with docx and python
+Accessing endpoints the localhost url on port 5000 (http://localhost:5000/) 
 
 TODO
 add docx templates and jinja tags
