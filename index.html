@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Upload</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <form id="upload-form" enctype="multipart/form-data" method="post">
+        <input type="file" name="file" id="file-input">
+        <progress id="upload-progress" value="0" max="100"></progress>
+        <button type="submit" id="upload-button">Upload</button>
+    </form>
+
+    <script>
+        $("#upload-form").on("submit", function(e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+
+            $.ajax({
+                xhr: function() {
+                    var xhr = new window.XMLHttpRequest();
+                    xhr.upload.addEventListener("progress", function(evt) {
+                        if (evt.lengthComputable) {
+                            var percentComplete = evt.loaded / evt.total;
+                            percentComplete = parseInt(percentComplete * 100);
+                            $("#upload-progress").val(percentComplete);
+                        }
+                    }, false);
+
+                    return xhr;
+                },
+                type: 'POST',
+                url: '/upload',
+                data: formData,
+                contentType: false
