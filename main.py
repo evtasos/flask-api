@@ -63,9 +63,10 @@ def create_file():
 # Route for downloading a file
 @app.route('/download/<filename>', methods=['GET'])
 def download_file(filename):
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
     # Check if the file exists
-    if os.path.exists(filename):
-        return send_file(filename, as_attachment=True), 200
+    if os.path.exists(file_path):
+        return send_file(file_path, as_attachment=True), 200
     else:
         return jsonify({"error": "File not found"}), 400
 
