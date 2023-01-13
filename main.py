@@ -64,7 +64,8 @@ def create_file():
         context = { 'recipient' : recipient, 'am' : am, 'year' : year}
         doc.render(context)
         filename, file_extension = os.path.splitext(template)
-        doc.save(f"{filename}_{recipient}_{dt_string}{file_extension}")
+        newname = f"{filename}_{recipient}_{dt_string}{file_extension}"
+        doc.save(newname)
         return jsonify({"success": f"File created successfully with name {filename}_{recipient}_{dt_string}{file_extension}"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -73,7 +74,7 @@ def create_file():
 # Route for downloading a file
 @app.route('/download/<filename>', methods=['GET'])
 def download_file(filename):
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    file_path = os.path.join(app.config[UPLOAD_FOLDER], filename)
     # Check if the file exists
     if os.path.exists(file_path):
         return send_file(file_path, as_attachment=True), 200
@@ -117,4 +118,4 @@ def delete_file(filename):
 def page_not_found(e):
     return jsonify({"error": "Endpoint not found"}), 404    
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
