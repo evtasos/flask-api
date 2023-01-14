@@ -1,0 +1,25 @@
+Flask==1.1.2
+docxtpl==0.8.11
+Werkzeug==1.0.1
+gunicorn==20.0.4
+
+FROM python:3.8-alpine
+
+# Install system dependencies
+RUN apk update && apk add build-base libffi-dev openssl-dev
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the code and the requirements.txt file
+COPY . /app
+
+# Install python dependencies
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+# Expose the port for Gunicorn
+EXPOSE 8000
+
+# Start the application with Gunicorn
+CMD ["gunicorn", "-b", "0.0.0.0:8000", "app:app"]
