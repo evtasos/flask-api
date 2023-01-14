@@ -2,4 +2,4 @@ venv/
 __pycache__/
 requirements2.txt
 archive
-httpclient.py
+testfolder
