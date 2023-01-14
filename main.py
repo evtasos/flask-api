@@ -31,14 +31,14 @@ def upload_files():
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         return jsonify({"success": "File uploaded successfully"}), 200
     else:
-        return jsonify({"error": "File type not allowed"}), 400        
-
+        return jsonify({"error": "File type not allowed"}), 400   
+    
 # Route for creating a new file
 @app.route('/create', methods=['POST'])
 def create_file():
     data = request.get_json()
     #check if all parameters are given
-    if not all(key in data for key in ('filename', 'recipient', 'am', 'year')):
+    if not all(key in data for key in ('template', 'recipient', 'am', 'year')):
         return jsonify({"error": "Missing required parameters"}), 400
     # check if the recipient field is a string
     if not isinstance(data.get('recipient'), str):
@@ -50,31 +50,31 @@ def create_file():
     if not isinstance(data.get('year'), int):
         return jsonify({"error": "year parameter should be an integer"}), 400
     now = datetime.now()
-    dt_string = now.strftime("%d/%m/%Y")
+    dt_string = now.strftime("%d-%m-%Y")
 
     try:
-        template = 'archive/'+data.get('filename')
+        template = 'archive/'+data.get('template')
         recipient = data.get('recipient')
         am = data.get('am')
         year = data.get('year')
 
+        # template = os.path.join(UPLOAD_FOLDER, template_name)
         if not os.path.isfile(template):
             return jsonify({"error": f"{template} not found"}), 404
         doc = DocxTemplate(template)
         context = { 'recipient' : recipient, 'am' : am, 'year' : year}
         doc.render(context)
         filename, file_extension = os.path.splitext(template)
-        newname = f"{filename}_{recipient}_{dt_string}{file_extension}"
-        doc.save(newname)
+        doc.save(f"{filename}_{recipient}_{dt_string}{file_extension}")
         return jsonify({"success": f"File created successfully with name {filename}_{recipient}_{dt_string}{file_extension}"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+   
 
 # Route for downloading a file
 @app.route('/download/<filename>', methods=['GET'])
 def download_file(filename):
-    file_path = os.path.join(app.config[UPLOAD_FOLDER], filename)
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
     # Check if the file exists
     if os.path.exists(file_path):
         return send_file(file_path, as_attachment=True), 200
@@ -111,7 +111,7 @@ def delete_file(filename):
         os.remove(file_path)
         return jsonify({"success": "File deleted successfully"}), 200
     else:
-        return jsonify({"error": "File not found"}), 400
+        return jsonify({"error": "File not found"}), 404
 
 # Route for handling teh case when the endpoint is not found
 @app.errorhandler(404)
