@@ -29,7 +29,7 @@ def upload_files():
         filename = secure_filename(file.filename)
          
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return jsonify({"success": "File uploaded successfully"}), 200
+        return jsonify({"success": f"File {filename} uploaded successfully"}), 200
     else:
         return jsonify({"error": "File type not allowed"}), 400   
     
@@ -92,7 +92,7 @@ def modify_file(filename):
         # Write the new file data to the server
         with open(file_path, "w") as f:
             f.write(file_data["content"])
-        return jsonify({"success": "File modified successfully"}), 200
+        return jsonify({"success": f"File {filename} modified successfully"}), 200
     else:
         return jsonify({"error": "File not found"}), 404
 
@@ -113,7 +113,7 @@ def delete_file(filename):
     else:
         return jsonify({"error": "File not found"}), 404
 
-# Route for handling teh case when the endpoint is not found
+# Route for handling the case when the endpoint is not found
 @app.errorhandler(404)
 def page_not_found(e):
     return jsonify({"error": "Endpoint not found"}), 404    
