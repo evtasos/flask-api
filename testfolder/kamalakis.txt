@@ -1,0 +1,2 @@
+https://www.bacancytechnology.com/blog/flask-jwt-authentication
+https://blog.hubspot.com/website/api-documentation-tool

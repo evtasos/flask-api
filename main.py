@@ -5,9 +5,12 @@ from werkzeug.utils import secure_filename
 from flask import send_file
 from docxtpl import DocxTemplate
 from datetime import datetime
+import jwt
+import sqlite3
 
 UPLOAD_FOLDER = 'archive'
-ALLOWED_EXTENSIONS = {'pdf', 'docx'}
+SECRET_KEY = 'ecWP1fNMQu'
+ALLOWED_EXTENSIONS = {'docx'}
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app = Flask(__name__, template_folder= '.')
@@ -17,9 +20,35 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# Connect to the database (or create it if it doesn't exist)
+
+
+def execute(sql, params=()):
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    result = cursor.execute(sql, params)
+    conn.commit()
+    return result
+
+def check_credentials(username, password):
+    # Connect to the database and check if the provided credentials match the ones stored
+    result = execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password))
+    if result:
+        return True
+    return False
+
 # Route for uploading a new file
 @app.route('/upload', methods=['POST'])
 def upload_files():
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({"error": "No token provided"}), 401
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithm='HS256')
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
     file = request.files['file']
@@ -36,6 +65,15 @@ def upload_files():
 # Route for creating a new file
 @app.route('/create', methods=['POST'])
 def create_file():
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({"error": "No token provided"}), 401
+    try:
+        payload = jwt.decode(token, SECRET_KEY)
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
     data = request.get_json()
     #check if all parameters are given
     if not all(key in data for key in ('template', 'recipient', 'am', 'year')):
@@ -112,6 +150,21 @@ def delete_file(filename):
         return jsonify({"success": "File deleted successfully"}), 200
     else:
         return jsonify({"error": "File not found"}), 404
+    
+# Route for genrating Tokens    
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    if not all(key in data for key in ('username', 'password')):
+        return jsonify({"error": "Missing required parameters"}), 400
+    # check if the provided credentials are correct
+    if not check_credentials(data.get('username'), data.get('password')):
+        return jsonify({"error": "Invalid username or password"}), 401
+    # generate a JWT token
+    payload = {'username': data.get('username')}
+    token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+    print(token)
+    return jsonify({"token": token}), 200
 
 # Route for handling the case when the endpoint is not found
 @app.errorhandler(404)

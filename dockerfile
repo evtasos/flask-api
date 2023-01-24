@@ -8,4 +8,4 @@ RUN pip3 install -r requirements.txt
 
 COPY main.py main.py
 
-CMD [ "gunicorn", "api:app", "--bind", "0.0.0.0:5000"]
+CMD [ "gunicorn", "main:app", "--bind", "0.0.0.0:5000"]
