@@ -1,5 +1,5 @@
 import sqlite3
-
+import bcrypt
 def execute(sql, params=()):
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
@@ -8,11 +8,12 @@ def execute(sql, params=()):
     return result
 
 def check_credentials(username, password):
-    # Connect to the database and check if the provided credentials match the ones stored
-    result = execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password))
+    hashed = bcrypt.hashpw(password, bcrypt.gensalt())
+    result = execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, hashed)).fetchone()
     if result:
         return True
     return False
-username = 'etasos'
-password = 'test123'
+
+username = 'it21122'
+password = b'21122'
 print(check_credentials(username, password))

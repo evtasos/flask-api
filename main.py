@@ -15,7 +15,7 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app = Flask(__name__, template_folder= '.')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
+app.config['SECRET_KEY'] = SECRET_KEY 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
