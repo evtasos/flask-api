@@ -8,7 +8,7 @@ from datetime import datetime
 import jwt
 import sqlite3
 import bcrypt
-import pdfkit
+import subprocess
 
 UPLOAD_FOLDER = 'archive'
 SECRET_KEY = 'ecWP1fNMQu'
@@ -106,7 +106,9 @@ def create_file():
         doc.render(context)
         filename, file_extension = os.path.splitext(template)
         doc.save(f"{filename}_{recipient}_{dt_string}{file_extension}")
-        pdfkit.from_file('archive/lorem.docx', 'archive/document.pdf')
+        
+        subprocess.run(["abiword", "--to=pdf",f"{filename}_{recipient}_{dt_string}{file_extension}"])
+        
         return jsonify({"success": f"File created successfully with name {filename}_{recipient}_{dt_string}{file_extension}"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
