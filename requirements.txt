@@ -3,5 +3,5 @@ werkzeug
 docxtpl
 pyjwt
 bcrypt
-sqlite3
+gunicorn==20.1.0
 python-docx
