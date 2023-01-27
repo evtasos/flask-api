@@ -10,4 +10,6 @@ RUN pip3 install -r requirements.txt
 
 COPY main.py main.py
 
+COPY users.db users.db
+
 CMD [ "gunicorn", "main:app", "--bind", "0.0.0.0:5000"]
