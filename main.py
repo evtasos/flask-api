@@ -98,7 +98,6 @@ def create_file():
         am = data.get('am')
         year = data.get('year')
 
-        # template = os.path.join(UPLOAD_FOLDER, template_name)
         if not os.path.isfile(template):
             return jsonify({"error": f"{template} not found"}), 404
         doc = DocxTemplate(template)
@@ -112,34 +111,33 @@ def create_file():
         return jsonify({"success": f"File created successfully with name {filename}_{recipient}_{dt_string}{file_extension}"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-   
 
-# Route for downloading a file
-@app.route('/download/<filename>', methods=['GET'])
-def download_file(filename):
+#Route for downloading a file
+@app.route('/download', methods=['POST'])
+def download_file():
     decode_token()
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
-    # Check if the file exists
+    data = request.get_json()   
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'],data.get('filename'))
     if os.path.exists(file_path):
         return send_file(file_path, as_attachment=True), 200
     else:
         return jsonify({"error": "File not found"}), 400
 
 # Route for modifying a file
-@app.route('/modify/<filename>', methods=['PUT'])
-def modify_file(filename):
-    decode_token()
-    # Get the new file data from the request
-    file_data = request.get_json()
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
-    # Check if the file exists
-    if os.path.exists(file_path):
-        # Write the new file data to the server
-        with open(file_path, "w") as f:
-            f.write(file_data["content"])
-        return jsonify({"success": f"File {filename} modified successfully"}), 200
-    else:
-        return jsonify({"error": "File not found"}), 404
+# @app.route('/modify/<filename>', methods=['PUT'])
+# def modify_file(filename):
+#     decode_token()
+#     # Get the new file data from the request
+#     file_data = request.get_json()
+#     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+#     # Check if the file exists
+#     if os.path.exists(file_path):
+#         # Write the new file data to the server
+#         with open(file_path, "w") as f:
+#             f.write(file_data["content"])
+#         return jsonify({"success": f"File {filename} modified successfully"}), 200
+#     else:
+#         return jsonify({"error": "File not found"}), 404
 
 # Route for listing all files
 @app.route('/list', methods=['GET'])
@@ -149,17 +147,19 @@ def list_files():
     return jsonify({"files": files}), 200
 
 # Route for deleting a file
-@app.route('/delete/<filename>', methods=['DELETE'])
-def delete_file(filename):
+@app.route('/delete', methods=['DELETE'])
+def delete_file():
     decode_token()
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    data = request.get_json()
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], data.get('filename'))
     # Check if the file exists
     if os.path.isfile(file_path):
         os.remove(file_path)
         return jsonify({"success": "File deleted successfully"}), 200
     else:
         return jsonify({"error": "File not found"}), 404
-    
+
+   
 # Route for genrating Tokens    
 @app.route('/login', methods=['POST'])
 def login():
@@ -179,4 +179,4 @@ def login():
 def page_not_found(e):
     return jsonify({"error": "Endpoint not found"}), 404    
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host = '0.0.0.0')
