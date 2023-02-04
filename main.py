@@ -43,20 +43,23 @@ def decode_token():
     if not token:
         return jsonify({"error": "No token provided"}), 401
     try:
-        
         payload = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
-        
+        return None
     except jwt.ExpiredSignatureError:
         return jsonify({"error10": "Token expired"}), 401
     except jwt.InvalidTokenError:
         return jsonify({"error11": "Invalid token"}), 401
+        
 
 
 # Route for uploading a new file
 @app.route('/upload', methods=['POST'])
 def upload_files():
-    decode_token()
-    
+    #check if token is valid
+    payload = decode_token()
+    if payload != None:
+        return jsonify({"error": "Invalid token"}), 401
+    #check if file is valid
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
     file = request.files['file']
@@ -73,9 +76,10 @@ def upload_files():
 # Route for creating a new file
 @app.route('/create', methods=['POST'])
 def create_file():
-    
-    decode_token()
-
+    #check if token is valid
+    payload = decode_token()
+    if payload != None:
+        return jsonify({"error": "Invalid token"}), 401
     data = request.get_json()
     #check if all parameters are given
     if not all(key in data for key in ('template', 'recipient', 'am', 'year')):
@@ -97,7 +101,7 @@ def create_file():
         recipient = data.get('recipient')
         am = data.get('am')
         year = data.get('year')
-
+        #check if template is present
         if not os.path.isfile(template):
             return jsonify({"error": f"{template} not found"}), 404
         doc = DocxTemplate(template)
@@ -105,7 +109,7 @@ def create_file():
         doc.render(context)
         filename, file_extension = os.path.splitext(template)
         doc.save(f"{filename}_{recipient}_{dt_string}{file_extension}")
-        
+        #transform docx to pdf
         subprocess.run(["abiword", "--to=pdf",f"{filename}_{recipient}_{dt_string}{file_extension}"])
         
         return jsonify({"success": f"File created successfully with name {filename}_{recipient}_{dt_string}{file_extension}"}), 200
@@ -115,7 +119,10 @@ def create_file():
 #Route for downloading a file
 @app.route('/download', methods=['POST'])
 def download_file():
-    decode_token()
+    #check if token is valid
+    payload = decode_token()
+    if payload != None:
+        return jsonify({"error": "Invalid token"}), 401
     data = request.get_json()   
     file_path = os.path.join(app.config['UPLOAD_FOLDER'],data.get('filename'))
     if os.path.exists(file_path):
@@ -142,14 +149,20 @@ def download_file():
 # Route for listing all files
 @app.route('/list', methods=['GET'])
 def list_files():
-    decode_token()
+    #check if token is valid
+    payload = decode_token()
+    if payload != None:
+        return jsonify({"error": "Invalid token"}), 401
     files = os.listdir(UPLOAD_FOLDER)
     return jsonify({"files": files}), 200
 
 # Route for deleting a file
 @app.route('/delete', methods=['DELETE'])
 def delete_file():
-    decode_token()
+    #check if token is valid
+    payload = decode_token()
+    if payload != None:
+        return jsonify({"error": "Invalid token"}), 401
     data = request.get_json()
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], data.get('filename'))
     # Check if the file exists
