@@ -185,7 +185,7 @@ def login():
     # generate a JWT token
     payload = {'username': data.get('username')}
     token = jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
-    return jsonify({"token": token.decode()}), 200
+    return jsonify({"token": token}), 200
 
 # Route for handling the case when the endpoint is not found
 @app.errorhandler(404)
