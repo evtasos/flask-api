@@ -10,6 +10,7 @@ import sqlite3
 import bcrypt
 import subprocess
 
+# Variables
 UPLOAD_FOLDER = 'archive'
 SECRET_KEY = 'ecWP1fNMQu'
 ALLOWED_EXTENSIONS = {'docx'}
@@ -19,6 +20,7 @@ app = Flask(__name__, template_folder= '.')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = SECRET_KEY 
 
+# Function for allowed extensions
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -30,13 +32,14 @@ def execute(sql, params=()):
     result = cursor.execute(sql, params)
     conn.commit()
     return result
-
+# Check users credential from db
 def check_credentials(username, password):
     result = execute("SELECT password, salt FROM users WHERE username = ?", (username,)).fetchone()
     if result:
         hashed_password, salt = result
         return bcrypt.checkpw(password.encode(), hashed_password)
     return False
+# Check authorization of the given token
 def decode_token():
     token = request.headers.get('Authorization').split()[1]
     
@@ -46,9 +49,9 @@ def decode_token():
         payload = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
         return None
     except jwt.ExpiredSignatureError:
-        return jsonify({"error10": "Token expired"}), 401
+        return jsonify({"error": "Token expired"}), 401
     except jwt.InvalidTokenError:
-        return jsonify({"error11": "Invalid token"}), 401
+        return jsonify({"error": "Invalid token"}), 401
         
 
 
@@ -66,7 +69,7 @@ def upload_files():
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
+        filename = secure_filename(file.filename) #secure the filename
          
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         return jsonify({"success": f"File {filename} uploaded successfully"}), 200
@@ -125,6 +128,7 @@ def download_file():
         return jsonify({"error": "Invalid token"}), 401
     data = request.get_json()   
     file_path = os.path.join(app.config['UPLOAD_FOLDER'],data.get('filename'))
+    #check if path is valid
     if os.path.exists(file_path):
         return send_file(file_path, as_attachment=True), 200
     else:
@@ -147,6 +151,7 @@ def download_file():
 #         return jsonify({"error": "File not found"}), 404
 
 # Route for listing all files
+
 @app.route('/list', methods=['GET'])
 def list_files():
     #check if token is valid
@@ -171,12 +176,12 @@ def delete_file():
         return jsonify({"success": "File deleted successfully"}), 200
     else:
         return jsonify({"error": "File not found"}), 404
-
    
-# Route for genrating Tokens    
+# Route for generating Tokens    
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
+    # Check if all params are present
     if not all(key in data for key in ('username', 'password')):
         return jsonify({"error": "Missing required parameters"}), 400
     # check if the provided credentials are correct
